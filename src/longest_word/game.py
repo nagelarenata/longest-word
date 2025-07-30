@@ -3,6 +3,7 @@
 import random
 import string
 from collections import Counter
+import requests
 
 class Game:
     """Classe principal que representa o jogo The Longest Word."""
@@ -23,4 +24,20 @@ class Game:
         word_count = Counter(word)
         grid_count = Counter(self.grid)
 
-        return all(word_count[letter] <= grid_count[letter] for letter in word)
+        valid_letter = all(word_count[letter] <= grid_count[letter] for letter in word)
+        valid_dictionary = self.__check_dictionary(word)
+        
+        return valid_letter and valid_dictionary
+    
+    @staticmethod
+    def __check_dictionary(word: str) -> bool:
+        """
+        Verifica se a palavra existe no dicionário inglês da Le Wagon.
+        """
+        try: 
+            response = requests.get(f"https://dictionary.lewagon.com/{word}")
+            response.raise_for_status()
+            json_response = response.json()
+            return json_response.get('found', False)
+        except (requests.RequestException, ValueError):
+            return False
